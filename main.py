@@ -188,9 +188,16 @@ def handle_dietary_preference(message):
     bot.send_message(user_id, "You are all set! Thank you! Your fitness goal, workout intensity, activity level, weight preference, and dietary preference have been recorded.")
     bot.send_message(user_id, """
     Here is the list of what this bot can do:
-    - Generate a personalized workout routine powered by AI (/workout)
-    - Suggest you a healthy snack ideas, adjusted for your preferences (/snack)
-    - Motivate you for hard work (/motivation)
+    1) View/update fitness profile (/profile)
+    2) Get personalized motivation (/motivation)
+    3)Receive personalized workout routine (/workout)
+    4) Get personalized nutrition tips (/nutrition)
+    5) Receive hydration tips for workouts (/hydration)
+    6) Get personalized exercise ideas (/exercises)
+    7) Receive stretching tips for flexibility (/stretching)
+    8) Get ideas for rest days (/rest)
+    9) Receive mindful fitness tips (/mindfulness)
+    10) Get personalized healthy snack ideas (/snack)   
     """, parse_mode='Markdown')
 
     # Clear user progress
@@ -251,6 +258,10 @@ def handle_snack(message):
         response = completion.choices[0].message.content
         print(response)
         bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/snack.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
@@ -291,6 +302,10 @@ def handle_workout(message):
         response = completion.choices[0].message.content
         print(response)
         bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/workout.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
@@ -331,12 +346,16 @@ def handle_motivation(message):
         response = completion.choices[0].message.content
         print(response)
         bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/motivation.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
 # Function to handle the /nutritiontips command
-@bot.message_handler(commands=['nutritiontips'])
+@bot.message_handler(commands=['nutrition'])
 def handle_nutrition_tips(message):
     user_id = message.from_user.id
 
@@ -371,12 +390,16 @@ def handle_nutrition_tips(message):
         response = completion.choices[0].message.content
         print(response)
         bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/nutrition.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
 # Function to handle the /exerciseideas command
-@bot.message_handler(commands=['exerciseideas'])
+@bot.message_handler(commands=['exercises'])
 def handle_exercise_ideas(message):
     user_id = message.from_user.id
 
@@ -411,9 +434,188 @@ def handle_exercise_ideas(message):
         response = completion.choices[0].message.content
         print(response)
         bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/exercises.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
+
+# Function to handle the /stretchingtips command
+@bot.message_handler(commands=['stretching'])
+def handle_stretching_tips(message):
+    user_id = message.from_user.id
+
+    # Retrieve user characteristics from the database
+    with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?',
+            (user_id,))
+        result = cursor.fetchone()
+
+    if result:
+        fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference = result
+
+        # Send initial message
+        initial_message = "Generating personalized stretching tips for you... This usually takes about 15-20 seconds..."
+        bot.send_message(user_id, initial_message)
+
+        # Use OpenAI API to generate stretching tips
+        client = OpenAI(api_key=OPENAI_API_KEY)
+
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system",
+                 "content": "You are a fitness expert, skilled in providing personalized stretching tips for users, by understanding their fitness goals and preferences"},
+                {"role": "user", "content": f"Generate 5 brief and short personalized stretching tips for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+            ]
+        )
+
+        # Retrieve and send the generated response
+        response = completion.choices[0].message.content
+        print(response)
+        bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/stretching.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
+    else:
+        bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
+
+# Function to handle the /hydrationtips command
+@bot.message_handler(commands=['hydration'])
+def handle_hydration_tips(message):
+    user_id = message.from_user.id
+
+    # Retrieve user characteristics from the database
+    with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?',
+            (user_id,))
+        result = cursor.fetchone()
+
+    if result:
+        fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference = result
+
+        # Send initial message
+        initial_message = "Generating personalized hydration tips for you... This usually takes about 10-15 seconds..."
+        bot.send_message(user_id, initial_message)
+
+        # Use OpenAI API to generate hydration tips
+        client = OpenAI(api_key=OPENAI_API_KEY)
+
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system",
+                 "content": "You are a fitness expert, skilled in providing personalized hydration tips for users, by understanding their fitness goals and preferences"},
+                {"role": "user", "content": f"Generate 3 brief short personalized hydration tips, each limited in 20 words for a user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+            ]
+        )
+
+        # Retrieve and send the generated response
+        response = completion.choices[0].message.content
+        print(response)
+        bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/hydration.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
+    else:
+        bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
+
+# Function to handle the /restdayideas command
+@bot.message_handler(commands=['rest'])
+def handle_rest_day_ideas(message):
+    user_id = message.from_user.id
+
+    # Retrieve user characteristics from the database
+    with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?',
+            (user_id,))
+        result = cursor.fetchone()
+
+    if result:
+        fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference = result
+
+        # Send initial message
+        initial_message = "Generating personalized rest day ideas for you... This usually takes about 10-15 seconds..."
+        bot.send_message(user_id, initial_message)
+
+        # Use OpenAI API to generate rest day ideas
+        client = OpenAI(api_key=OPENAI_API_KEY)
+
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system",
+                 "content": "You are a fitness expert, skilled in providing personalized rest day ideas for users, by understanding their fitness goals and preferences"},
+                {"role": "user", "content": f"Generate 5 personalized rest day ideas each limited to 15 words for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+            ]
+        )
+
+        # Retrieve and send the generated response
+        response = completion.choices[0].message.content
+        print(response)
+        bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/rest.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
+    else:
+        bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
+
+# Function to handle the /mindfulfitness command
+@bot.message_handler(commands=['mindfulness'])
+def handle_mindful_fitness(message):
+    user_id = message.from_user.id
+
+    # Retrieve user characteristics from the database
+    with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?',
+            (user_id,))
+        result = cursor.fetchone()
+
+    if result:
+        fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference = result
+
+        # Send initial message
+        initial_message = "Generating personalized mindful fitness tips for you... This usually takes about 10-15 seconds..."
+        bot.send_message(user_id, initial_message)
+
+        # Use OpenAI API to generate mindful fitness tips
+        client = OpenAI(api_key=OPENAI_API_KEY)
+
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system",
+                 "content": "You are a fitness expert, skilled in providing personalized mindful fitness tips for users, by understanding their fitness goals and preferences"},
+                {"role": "user", "content": f"Generate 5 personalized mindful fitness tips each limited in 20 words for a user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+            ]
+        )
+
+        # Retrieve and send the generated response
+        response = completion.choices[0].message.content
+        print(response)
+        bot.send_message(user_id, response, parse_mode='Markdown')
+
+        # Send the image along with the tips
+        with open('img/mindfulness.jpg', 'rb') as photo:
+            bot.send_photo(user_id, photo)
+    else:
+        bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
 # Start the bot
