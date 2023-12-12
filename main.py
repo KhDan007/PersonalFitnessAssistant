@@ -1,16 +1,16 @@
 import os
 import telebot
 import sqlite3
-from telebot import types
+
 from openai import OpenAI
-import dotenv
-dotenv.load_dotenv()
+from telebot import types
+from dotenv import load_dotenv
+load_dotenv()
 
 # Initialize the Telegram Bot token
 TOKEN = os.environ.get("TELEGRAM_API_KEY")
 OPENAI_API_KEY = os.environ.get("OPENAI_API")
 bot = telebot.TeleBot(TOKEN)
-
 
 # Create the users table if not exists
 with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
@@ -190,7 +190,7 @@ def handle_dietary_preference(message):
     Here is the list of what this bot can do:
     1) View/update fitness profile (/profile)
     2) Get personalized motivation (/motivation)
-    3)Receive personalized workout routine (/workout)
+    3) Receive personalized workout routine (/workout)
     4) Get personalized nutrition tips (/nutrition)
     5) Receive hydration tips for workouts (/hydration)
     6) Get personalized exercise ideas (/exercises)
@@ -217,9 +217,67 @@ def handle_profile(message):
     if result:
         fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference = result
         profile_message = f"Your Fitness Profile:\n\nFitness Goal: {fitness_goal}\nWorkout Intensity: {workout_intensity}\nActivity Level: {activity_level}\nWeight Preference: {weight_preference}\nDietary Preference: {dietary_preference}"
-        bot.send_message(user_id, profile_message)
+
+        # Create a custom keyboard with buttons to view, edit, or return to the main menu
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        view_button = types.KeyboardButton('View Profile')
+        edit_button = types.KeyboardButton('Edit Profile')
+        return_button = types.KeyboardButton('Return to Main Menu')
+        markup.add(view_button, edit_button, return_button)
+
+        # Prompt the user with their profile information and options
+        bot.send_message(user_id, profile_message, reply_markup=markup)
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
+# Handle user's response to the /profile command
+@bot.message_handler(func=lambda message: message.text in ['View Profile', 'Edit Profile', 'Return to Main Menu'])
+def handle_profile_actions(message):
+    user_id = message.from_user.id
+
+    if message.text == 'View Profile':
+        # Retrieve user characteristics from the database
+        with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?', (user_id,))
+            result = cursor.fetchone()
+
+        if result:
+            fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference = result
+            profile_message = f"Your Fitness Profile:\n\nFitness Goal: {fitness_goal}\nWorkout Intensity: {workout_intensity}\nActivity Level: {activity_level}\nWeight Preference: {weight_preference}\nDietary Preference: {dietary_preference}"
+            bot.send_message(user_id, profile_message)
+        else:
+            bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+    elif message.text == 'Edit Profile':
+        # Fitness goals keyboard
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning",
+                 "Improve joint flexibility"]
+        for goal in goals:
+            markup.add(types.KeyboardButton(goal))
+
+        bot.send_message(user_id, "Choose your fitness goal:", reply_markup=markup)
+
+        # Set user progress to the first step
+        user_progress[user_id] = "fitness_goal"
+
+
+    elif message.text == 'Return to Main Menu':
+        # Send the list of features
+        features_message = """
+                Here is the list of what this bot can do:
+                1) View/update fitness profile (/profile)
+                2) Get personalized motivation (/motivation)
+                3) Receive personalized workout routine (/workout)
+                4) Get personalized nutrition tips (/nutrition)
+                5) Receive hydration tips for workouts (/hydration)
+                6) Get personalized exercise ideas (/exercises)
+                7) Receive stretching tips for flexibility (/stretching)
+                8) Get ideas for rest days (/rest)
+                9) Receive mindful fitness tips (/mindfulness)
+                10) Get personalized healthy snack ideas (/snack)
+                """
+        bot.send_message(user_id, features_message, parse_mode='Markdown')
 
 
 # Function to handle the /snack command
