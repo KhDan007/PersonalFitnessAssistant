@@ -1,9 +1,15 @@
+import os
 import telebot
 import sqlite3
 from telebot import types
+from openai import OpenAI
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # Initialize the Telegram Bot token
-TOKEN = '6986413487:AAFfgyYuJSSIW-8QaxUec8VgdF1TBW4sfKY'
+TOKEN = os.getenv("TELEGRAM_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 bot = telebot.TeleBot(TOKEN)
 
 # Create the users table if not exists
@@ -179,13 +185,11 @@ def handle_dietary_preference(message):
         conn.commit()
 
     # Thank the user
-    bot.send_message(user_id, "You are all set! Here is the list of what this bot can do:")
-    bot.send_message(user_id, "1. Choose your fitness goal.")
-    bot.send_message(user_id, "2. Choose your workout intensity.")
-    bot.send_message(user_id, "3. Choose your activity level.")
-    bot.send_message(user_id, "4. Choose your weight preference.")
-    bot.send_message(user_id, "5. Choose your dietary preference.")
-    bot.send_message(user_id, "Thank you! Your fitness goal, workout intensity, activity level, weight preference, and dietary preference have been recorded.")
+    bot.send_message(user_id, "You are all set! Thank you! Your fitness goal, workout intensity, activity level, weight preference, and dietary preference have been recorded.")
+    bot.send_message(user_id, """
+    Here is the list of what this bot can do:
+    - Generate a personalized fitness plan powered by AI (/plan)
+    """, parse_mode='Markdown')
 
     # Clear user progress
     del user_progress[user_id]
@@ -207,6 +211,48 @@ def handle_profile(message):
         bot.send_message(user_id, profile_message)
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
+
+# Function to handle the /plan command
+@bot.message_handler(commands=['plan'])
+def handle_plan(message):
+    global plan_sent
+    user_id = message.from_user.id
+
+    # Retrieve user characteristics from the database
+    with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?',
+            (user_id,))
+        result = cursor.fetchone()
+
+    if result:
+        fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference = result
+
+        # Send initial message
+        initial_message = "Generating a personalized fitness plan for you... This usually takes about 15-20 seconds..."
+        bot.send_message(user_id, initial_message)
+
+        # Use OpenAI API to generate fitness plan
+        client = OpenAI(api_key=OPENAI_API_KEY)
+
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system",
+                 "content": "You are a fitness trainer, skilled in creating fitness plans for users, by analyzing their preferences"},
+                {"role": "user", "content": f"Generate a personalized fitness plan for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+            ]
+        )
+
+        # Retrieve and send the generated response
+        response = completion.choices[0].message.content
+        print(response)
+        bot.send_message(user_id, response, parse_mode='Markdown')
+    else:
+        bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
 
 # Start the bot
 print('bot is running')
