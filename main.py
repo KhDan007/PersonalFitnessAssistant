@@ -189,6 +189,7 @@ def handle_dietary_preference(message):
     bot.send_message(user_id, """
     Here is the list of what this bot can do:
     - Generate a personalized fitness plan powered by AI (/plan)
+    - Suggest you a healthy snack ideas, adjusted for your preferences (/snack)
     """, parse_mode='Markdown')
 
     # Clear user progress
@@ -242,7 +243,7 @@ def handle_plan(message):
             messages=[
                 {"role": "system",
                  "content": "You are a fitness trainer, skilled in creating fitness plans for users, by analyzing their preferences"},
-                {"role": "user", "content": f"Generate a personalized fitness plan for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user", "content": f"Generate a personalized fitness plan for a person who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -252,6 +253,49 @@ def handle_plan(message):
         bot.send_message(user_id, response, parse_mode='Markdown')
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
+
+# Function to handle the /snack command
+@bot.message_handler(commands=['snack'])
+def handle_snack(message):
+    user_id = message.from_user.id
+
+    # Retrieve user characteristics from the database
+    with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?',
+            (user_id,))
+        result = cursor.fetchone()
+
+    if result:
+        fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference = result
+
+        # Send initial message
+        initial_message = "Generating personalized healthy snack ideas for you... This usually takes about 15-20 seconds..."
+        bot.send_message(user_id, initial_message)
+
+        # Use OpenAI API to generate snack ideas
+        client = OpenAI(api_key=OPENAI_API_KEY)
+
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system",
+                 "content": "You are a nutritionist, skilled in providing healthy snack ideas for users, by analyzing their preferences"},
+                {"role": "user", "content": f"Generate personalized healthy snack ideas for a person who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+            ]
+        )
+
+        # Retrieve and send the generated response
+        response = completion.choices[0].message.content
+        print(response)
+        bot.send_message(user_id, response, parse_mode='Markdown')
+    else:
+        bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
+
+
 
 
 # Start the bot
