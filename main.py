@@ -31,7 +31,6 @@ with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
 # Dictionary to store user progress
 user_progress = {}
 
-# Welcome message and fitness goals keyboard
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     user_id = message.from_user.id
@@ -46,10 +45,12 @@ def handle_start(message):
     for goal in goals:
         markup.add(types.KeyboardButton(goal))
 
+    # Prompt the user to choose a fitness goal
     bot.send_message(user_id, "Choose your fitness goal:", reply_markup=markup)
 
     # Set user progress to the first step
     user_progress[user_id] = "fitness_goal"
+
 
 # Handle user's fitness goal
 @bot.message_handler(func=lambda message: user_progress.get(message.from_user.id) == "fitness_goal")
@@ -60,12 +61,29 @@ def handle_fitness_goal(message):
     # Extract fitness goal from the user's message
     fitness_goal = message.text.strip()
 
+    # Check if the entered goal is in the list
+    valid_goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning", "Improve joint flexibility"]
+    if fitness_goal not in valid_goals:
+        bot.send_message(user_id, "Invalid input. Please choose a valid fitness goal.")
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning",
+                 "Improve joint flexibility"]
+        for goal in goals:
+            markup.add(types.KeyboardButton(goal))
+
+        # Prompt the user to choose a fitness goal
+        bot.send_message(user_id, "Choose your fitness goal:", reply_markup=markup)
+        return
+
+    # Continue with the workflow
+
     # Ask the user to choose workout intensity
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     intensities = ["Easy", "Moderate", "Hard"]
     for intensity in intensities:
         markup.add(types.KeyboardButton(intensity))
 
+    # Prompt the user to choose workout intensity
     bot.send_message(user_id, "Choose your workout intensity:", reply_markup=markup)
 
     # Store the fitness goal in the database
@@ -81,6 +99,7 @@ def handle_fitness_goal(message):
 
     # Set user progress to the next step
     user_progress[user_id] = "workout_intensity"
+
 
 # Handle user's workout intensity
 @bot.message_handler(func=lambda message: user_progress.get(message.from_user.id) == "workout_intensity")
