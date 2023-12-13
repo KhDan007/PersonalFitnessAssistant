@@ -5,6 +5,7 @@ import sqlite3
 from openai import OpenAI
 from telebot import types
 from dotenv import load_dotenv
+
 load_dotenv()
 
 TOKEN = os.environ.get("TELEGRAM_API_KEY")
@@ -27,9 +28,9 @@ with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
     ''')
     conn.commit()
 
-
 # Dictionary to store user progress
 user_progress = {}
+
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
@@ -37,7 +38,8 @@ def handle_start(message):
     username = message.from_user.username
 
     # Welcome message
-    bot.send_message(user_id, f"Welcome, {username}! I'm your Personal Fitness Assistant. Let's start by setting your fitness goal.")
+    bot.send_message(user_id,
+                     f"Welcome, {username}! I'm your Personal Fitness Assistant. Let's start by setting your fitness goal.")
 
     # Fitness goals keyboard
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -62,7 +64,8 @@ def handle_fitness_goal(message):
     fitness_goal = message.text.strip()
 
     # Check if the entered goal is in the list
-    valid_goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning", "Improve joint flexibility"]
+    valid_goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning",
+                   "Improve joint flexibility"]
     if fitness_goal not in valid_goals:
         bot.send_message(user_id, "Invalid input. Please choose a valid fitness goal.")
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -136,6 +139,7 @@ def handle_workout_intensity(message):
     # Set user progress to the next step
     user_progress[user_id] = "activity_level"
 
+
 # Handle user's activity level
 @bot.message_handler(func=lambda message: user_progress.get(message.from_user.id) == "activity_level")
 def handle_activity_level(message):
@@ -151,7 +155,8 @@ def handle_activity_level(message):
     for preference in weight_preferences:
         markup.add(types.KeyboardButton(preference))
 
-    bot.send_message(user_id, "Do you prefer working with additional weight or with your own weight?", reply_markup=markup)
+    bot.send_message(user_id, "Do you prefer working with additional weight or with your own weight?",
+                     reply_markup=markup)
 
     # Store the activity level in the database
     with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
@@ -164,6 +169,7 @@ def handle_activity_level(message):
 
     # Set user progress to the next step
     user_progress[user_id] = "weight_preference"
+
 
 # Handle user's weight preference
 @bot.message_handler(func=lambda message: user_progress.get(message.from_user.id) == "weight_preference")
@@ -193,6 +199,7 @@ def handle_weight_preference(message):
     # Set user progress to the next step
     user_progress[user_id] = "dietary_preference"
 
+
 # Handle user's dietary preference
 @bot.message_handler(func=lambda message: user_progress.get(message.from_user.id) == "dietary_preference")
 def handle_dietary_preference(message):
@@ -211,7 +218,8 @@ def handle_dietary_preference(message):
         conn.commit()
 
     # Thank the user
-    bot.send_message(user_id, "You are all set! Thank you! Your fitness goal, workout intensity, activity level, weight preference, and dietary preference have been recorded.")
+    bot.send_message(user_id,
+                     "You are all set! Thank you! Your fitness goal, workout intensity, activity level, weight preference, and dietary preference have been recorded.")
     bot.send_message(user_id, """
     Here is the list of what this bot can do:
     1) View/update fitness profile (/profile)
@@ -230,27 +238,6 @@ def handle_dietary_preference(message):
     del user_progress[user_id]
 
 
-# Generic error handling function
-@bot.message_handler(func=lambda message: True)
-def handle_invalid_command(message):
-    user_id = message.from_user.id
-
-    # Respond with an error message
-    error_message = "I'm sorry, but I didn't understand that command. Here are some available commands:\n\n" \
-                    "/profile: View/update fitness profile\n" \
-                    "/motivation: Get personalized motivation\n" \
-                    "/workout: Receive personalized workout routine\n" \
-                    "/nutrition: Get personalized nutrition tips\n" \
-                    "/hydration: Receive hydration tips for workouts\n" \
-                    "/exercises: Get personalized exercise ideas\n" \
-                    "/stretching: Receive stretching tips for flexibility\n" \
-                    "/rest: Get ideas for rest days\n" \
-                    "/mindfulness: Receive mindful fitness tips\n" \
-                    "/snack: Get personalized healthy snack ideas"
-
-    bot.send_message(user_id, error_message, parse_mode='Markdown')
-
-
 # Handle the /profile command
 @bot.message_handler(commands=['profile'])
 def handle_profile(message):
@@ -259,7 +246,9 @@ def handle_profile(message):
     # Retrieve user characteristics from the database
     with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?', (user_id,))
+        cursor.execute(
+            'SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?',
+            (user_id,))
         result = cursor.fetchone()
 
     if result:
@@ -278,6 +267,7 @@ def handle_profile(message):
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
+
 # Handle user's response to the /profile command
 @bot.message_handler(func=lambda message: message.text in ['View Profile', 'Edit Profile', 'Return to Main Menu'])
 def handle_profile_actions(message):
@@ -287,7 +277,9 @@ def handle_profile_actions(message):
         # Retrieve user characteristics from the database
         with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?', (user_id,))
+            cursor.execute(
+                'SELECT fitness_goal, workout_intensity, activity_level, weight_preference, dietary_preference FROM users WHERE user_id = ?',
+                (user_id,))
             result = cursor.fetchone()
 
         if result:
@@ -295,7 +287,8 @@ def handle_profile_actions(message):
             profile_message = f"Your Fitness Profile:\n\nFitness Goal: {fitness_goal}\nWorkout Intensity: {workout_intensity}\nActivity Level: {activity_level}\nWeight Preference: {weight_preference}\nDietary Preference: {dietary_preference}"
             bot.send_message(user_id, profile_message)
         else:
-            bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+            bot.send_message(user_id,
+                             "You haven't set your fitness profile yet. Use the /start command to get started.")
     elif message.text == 'Edit Profile':
         # Fitness goals keyboard
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -356,7 +349,8 @@ def handle_snack(message):
             messages=[
                 {"role": "system",
                  "content": "You are a nutritionist, skilled in providing healthy snack ideas for users, by analyzing their preferences"},
-                {"role": "user", "content": f"Generate personalized healthy snack ideas for a person who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate personalized healthy snack ideas for a person who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -400,7 +394,8 @@ def handle_workout(message):
             messages=[
                 {"role": "system",
                  "content": "You are a fitness trainer, skilled in creating workout routines for users, by analyzing their preferences"},
-                {"role": "user", "content": f"Generate a personalized workout routine for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate a personalized workout routine for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -444,7 +439,8 @@ def handle_motivation(message):
             messages=[
                 {"role": "system",
                  "content": "You are a motivational coach, skilled in providing personalized motivation for users, by understanding their fitness goals"},
-                {"role": "user", "content": f"Generate a motivational quote for a person who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate a motivational quote for a person who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -488,7 +484,8 @@ def handle_nutrition_tips(message):
             messages=[
                 {"role": "system",
                  "content": "You are a nutritionist, skilled in providing personalized nutrition tips for users, by understanding their fitness goals and dietary preferences"},
-                {"role": "user", "content": f"Generate 5 brief personalized nutrition tips for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate 5 brief personalized nutrition tips for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -532,7 +529,8 @@ def handle_exercise_ideas(message):
             messages=[
                 {"role": "system",
                  "content": "You are a fitness trainer, skilled in providing personalized exercise ideas for users, by understanding their fitness goals and preferences"},
-                {"role": "user", "content": f"Generate 5 short brief personalized exercise ideas for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate 5 short brief personalized exercise ideas for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -576,7 +574,8 @@ def handle_stretching_tips(message):
             messages=[
                 {"role": "system",
                  "content": "You are a fitness expert, skilled in providing personalized stretching tips for users, by understanding their fitness goals and preferences"},
-                {"role": "user", "content": f"Generate 5 brief and short personalized stretching tips for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate 5 brief and short personalized stretching tips for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -620,7 +619,8 @@ def handle_hydration_tips(message):
             messages=[
                 {"role": "system",
                  "content": "You are a fitness expert, skilled in providing personalized hydration tips for users, by understanding their fitness goals and preferences"},
-                {"role": "user", "content": f"Generate 3 brief short personalized hydration tips, each limited in 20 words for a user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate 3 brief short personalized hydration tips, each limited in 20 words for a user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -664,7 +664,8 @@ def handle_rest_day_ideas(message):
             messages=[
                 {"role": "system",
                  "content": "You are a fitness expert, skilled in providing personalized rest day ideas for users, by understanding their fitness goals and preferences"},
-                {"role": "user", "content": f"Generate 5 personalized rest day ideas each limited to 15 words for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate 5 personalized rest day ideas each limited to 15 words for user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -708,7 +709,8 @@ def handle_mindful_fitness(message):
             messages=[
                 {"role": "system",
                  "content": "You are a fitness expert, skilled in providing personalized mindful fitness tips for users, by understanding their fitness goals and preferences"},
-                {"role": "user", "content": f"Generate 5 personalized mindful fitness tips each limited in 20 words for a user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
+                {"role": "user",
+                 "content": f"Generate 5 personalized mindful fitness tips each limited in 20 words for a user who selected: Fitness Goal: {fitness_goal}, Workout Intensity: {workout_intensity}, Activity Level: {activity_level}, Weight Preference: {weight_preference}, Dietary Preference: {dietary_preference}."}
             ]
         )
 
@@ -722,6 +724,27 @@ def handle_mindful_fitness(message):
             bot.send_photo(user_id, photo)
     else:
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
+
+
+# Generic error handling function
+@bot.message_handler(func=lambda message: True)
+def handle_invalid_command(message):
+    user_id = message.from_user.id
+
+    # Respond with an error message
+    error_message = "I'm sorry, but I didn't understand that command. Here are some available commands:\n\n" \
+                    "/profile: View/update fitness profile\n" \
+                    "/motivation: Get personalized motivation\n" \
+                    "/workout: Receive personalized workout routine\n" \
+                    "/nutrition: Get personalized nutrition tips\n" \
+                    "/hydration: Receive hydration tips for workouts\n" \
+                    "/exercises: Get personalized exercise ideas\n" \
+                    "/stretching: Receive stretching tips for flexibility\n" \
+                    "/rest: Get ideas for rest days\n" \
+                    "/mindfulness: Receive mindful fitness tips\n" \
+                    "/snack: Get personalized healthy snack ideas"
+
+    bot.send_message(user_id, error_message, parse_mode='Markdown')
 
 
 # Start the bot
