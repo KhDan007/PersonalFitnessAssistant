@@ -43,7 +43,7 @@ def handle_start(message):
 
     # Fitness goals keyboard
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning", "Improve joint flexibility"]
+    goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance", "Improve joint flexibility"]
     for goal in goals:
         markup.add(types.KeyboardButton(goal))
 
@@ -64,7 +64,7 @@ def handle_fitness_goal(message):
     fitness_goal = message.text.strip()
 
     # Check if the entered goal is in the list
-    valid_goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning",
+    valid_goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance",
                    "Improve joint flexibility"]
     if fitness_goal not in valid_goals:
         bot.send_message(user_id, "Invalid input. Please choose a valid fitness goal.")
@@ -121,7 +121,7 @@ def handle_workout_intensity(message):
 
     # Ask the user to choose activity level
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    activity_levels = ["Sedentary", "Moderately Active", "Active"]
+    activity_levels = ["Sedentary (Inactive)", "Moderately Active", "Active"]
     for level in activity_levels:
         markup.add(types.KeyboardButton(level))
 
@@ -217,22 +217,24 @@ def handle_dietary_preference(message):
 
         conn.commit()
 
+    features = """
+Here is the list of what this bot can do:
+1) View/update fitness profile (/profile)
+2) Get personalized motivation (/motivation)
+3) Receive personalized workout routine (/workout)
+4) Get personalized nutrition tips (/nutrition)
+5) Receive hydration tips for workouts (/hydration)
+6) Get personalized exercise ideas (/exercises)
+7) Receive stretching tips for flexibility (/stretching)
+8) Get ideas for rest days (/rest)
+9) Receive mindful fitness tips (/mindfulness)
+10) Get personalized healthy snack ideas (/snack)   
+    """
+
     # Thank the user
     bot.send_message(user_id,
                      "You are all set! Thank you! Your fitness goal, workout intensity, activity level, weight preference, and dietary preference have been recorded.")
-    bot.send_message(user_id, """
-    Here is the list of what this bot can do:
-    1) View/update fitness profile (/profile)
-    2) Get personalized motivation (/motivation)
-    3) Receive personalized workout routine (/workout)
-    4) Get personalized nutrition tips (/nutrition)
-    5) Receive hydration tips for workouts (/hydration)
-    6) Get personalized exercise ideas (/exercises)
-    7) Receive stretching tips for flexibility (/stretching)
-    8) Get ideas for rest days (/rest)
-    9) Receive mindful fitness tips (/mindfulness)
-    10) Get personalized healthy snack ideas (/snack)   
-    """, parse_mode='Markdown')
+    bot.send_message(user_id, features, parse_mode='Markdown')
 
     # Clear user progress
     del user_progress[user_id]
@@ -292,7 +294,7 @@ def handle_profile_actions(message):
     elif message.text == 'Edit Profile':
         # Fitness goals keyboard
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning",
+        goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance",
                  "Improve joint flexibility"]
         for goal in goals:
             markup.add(types.KeyboardButton(goal))
@@ -306,17 +308,17 @@ def handle_profile_actions(message):
     elif message.text == 'Return to Main Menu':
         # Send the list of features
         features_message = """
-                Here is the list of what this bot can do:
-                1) View/update fitness profile (/profile)
-                2) Get personalized motivation (/motivation)
-                3) Receive personalized workout routine (/workout)
-                4) Get personalized nutrition tips (/nutrition)
-                5) Receive hydration tips for workouts (/hydration)
-                6) Get personalized exercise ideas (/exercises)
-                7) Receive stretching tips for flexibility (/stretching)
-                8) Get ideas for rest days (/rest)
-                9) Receive mindful fitness tips (/mindfulness)
-                10) Get personalized healthy snack ideas (/snack)
+Here is the list of what this bot can do:
+1) View/update fitness profile (/profile)
+2) Get personalized motivation (/motivation)
+3) Receive personalized workout routine (/workout)
+4) Get personalized nutrition tips (/nutrition)
+5) Receive hydration tips for workouts (/hydration)
+6) Get personalized exercise ideas (/exercises)
+7) Receive stretching tips for flexibility (/stretching)
+8) Get ideas for rest days (/rest)
+9) Receive mindful fitness tips (/mindfulness)
+10) Get personalized healthy snack ideas (/snack)
                 """
         bot.send_message(user_id, features_message, parse_mode='Markdown')
 
