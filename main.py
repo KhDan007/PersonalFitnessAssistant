@@ -7,7 +7,6 @@ from telebot import types
 from dotenv import load_dotenv
 load_dotenv()
 
-# Initialize the Telegram Bot token
 TOKEN = os.environ.get("TELEGRAM_API_KEY")
 OPENAI_API_KEY = os.environ.get("OPENAI_API")
 bot = telebot.TeleBot(TOKEN)
@@ -148,7 +147,7 @@ def handle_activity_level(message):
 
     # Ask the user about weight preference
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    weight_preferences = ["With Additional Weight", "Bodyweight Only"]
+    weight_preferences = ["With Additional Weight", "Body weight Only"]
     for preference in weight_preferences:
         markup.add(types.KeyboardButton(preference))
 
@@ -461,7 +460,7 @@ def handle_motivation(message):
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
-# Function to handle the /nutritiontips command
+# Function to handle the /nutrition command
 @bot.message_handler(commands=['nutrition'])
 def handle_nutrition_tips(message):
     user_id = message.from_user.id
@@ -505,7 +504,7 @@ def handle_nutrition_tips(message):
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
-# Function to handle the /exerciseideas command
+# Function to handle the /exercises command
 @bot.message_handler(commands=['exercises'])
 def handle_exercise_ideas(message):
     user_id = message.from_user.id
@@ -549,7 +548,7 @@ def handle_exercise_ideas(message):
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
-# Function to handle the /stretchingtips command
+# Function to handle the /stretching command
 @bot.message_handler(commands=['stretching'])
 def handle_stretching_tips(message):
     user_id = message.from_user.id
@@ -593,7 +592,7 @@ def handle_stretching_tips(message):
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
-# Function to handle the /hydrationtips command
+# Function to handle the /hydration command
 @bot.message_handler(commands=['hydration'])
 def handle_hydration_tips(message):
     user_id = message.from_user.id
@@ -637,7 +636,7 @@ def handle_hydration_tips(message):
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
-# Function to handle the /restdayideas command
+# Function to handle the /rest command
 @bot.message_handler(commands=['rest'])
 def handle_rest_day_ideas(message):
     user_id = message.from_user.id
@@ -681,7 +680,7 @@ def handle_rest_day_ideas(message):
         bot.send_message(user_id, "You haven't set your fitness profile yet. Use the /start command to get started.")
 
 
-# Function to handle the /mindfulfitness command
+# Function to handle the /mindfulness command
 @bot.message_handler(commands=['mindfulness'])
 def handle_mindful_fitness(message):
     user_id = message.from_user.id
