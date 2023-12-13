@@ -10,7 +10,11 @@ load_dotenv()
 
 TOKEN = os.environ.get("TELEGRAM_API_KEY")
 OPENAI_API_KEY = os.environ.get("OPENAI_API")
-bot = telebot.TeleBot(TOKEN)
+
+try:
+    bot = telebot.TeleBot(TOKEN)
+except:
+    print("You have a problem with Telegram API key. Ask Daniyal about the API key.")
 
 # Create the users table if not exists
 with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
