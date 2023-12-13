@@ -28,6 +28,7 @@ with sqlite3.connect('fitness_bot.db', check_same_thread=False) as conn:
     ''')
     conn.commit()
 
+
 # Dictionary to store user progress
 user_progress = {}
 
@@ -66,9 +67,7 @@ def handle_fitness_goal(message):
     if fitness_goal not in valid_goals:
         bot.send_message(user_id, "Invalid input. Please choose a valid fitness goal.")
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-        goals = ["Lose fat", "Build muscle", "Get stronger", "Improve endurance/conditioning",
-                 "Improve joint flexibility"]
-        for goal in goals:
+        for goal in valid_goals:
             markup.add(types.KeyboardButton(goal))
 
         # Prompt the user to choose a fitness goal
@@ -106,8 +105,17 @@ def handle_fitness_goal(message):
 def handle_workout_intensity(message):
     user_id = message.from_user.id
 
-    # Extract workout intensity from the user's message
     workout_intensity = message.text.strip()
+
+    valid_intensities = ["Easy", "Moderate", "Hard"]
+    if workout_intensity not in valid_intensities:
+        bot.send_message(user_id, "Invalid input. Please choose a valid workout intensity level.")
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+        for goal in valid_intensities:
+            markup.add(types.KeyboardButton(goal))
+
+        bot.send_message(user_id, "Choose your workout intensity:", reply_markup=markup)
+        return
 
     # Ask the user to choose activity level
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -221,6 +229,28 @@ def handle_dietary_preference(message):
 
     # Clear user progress
     del user_progress[user_id]
+
+
+# Generic error handling function
+@bot.message_handler(func=lambda message: True)
+def handle_invalid_command(message):
+    user_id = message.from_user.id
+
+    # Respond with an error message
+    error_message = "I'm sorry, but I didn't understand that command. Here are some available commands:\n\n" \
+                    "/profile: View/update fitness profile\n" \
+                    "/motivation: Get personalized motivation\n" \
+                    "/workout: Receive personalized workout routine\n" \
+                    "/nutrition: Get personalized nutrition tips\n" \
+                    "/hydration: Receive hydration tips for workouts\n" \
+                    "/exercises: Get personalized exercise ideas\n" \
+                    "/stretching: Receive stretching tips for flexibility\n" \
+                    "/rest: Get ideas for rest days\n" \
+                    "/mindfulness: Receive mindful fitness tips\n" \
+                    "/snack: Get personalized healthy snack ideas"
+
+    bot.send_message(user_id, error_message, parse_mode='Markdown')
+
 
 # Handle the /profile command
 @bot.message_handler(commands=['profile'])
